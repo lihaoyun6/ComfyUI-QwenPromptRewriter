@@ -250,7 +250,7 @@ class QwenPromptRewriter:
                     "tooltip": 'For "Qwen-Image-Edit" style, please use the "qwen-vl-xxx" series model.'
                 }),
                 "max_retry": ("INT",{
-                    "default": 10, "min": 1, "max": 10000, "step": 1,
+                    "default": 5, "min": 1, "max": 10000, "step": 1,
                     "tooltip": "Maximum number of retries when an API call fails."
                 }),
                 "API_KEY": ("STRING",{
@@ -260,6 +260,10 @@ class QwenPromptRewriter:
                 "API_KEY_file": ("BOOLEAN", {
                     "default": True,
                     "tooltip": f'Read your API_KEY from "{key_path}" so you can share your workflow safely.'
+                }),
+                "skip_rewrite": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": "Don't rewrite the prompt word, just output it directly."
                 }), 
             }
         }
@@ -269,7 +273,10 @@ class QwenPromptRewriter:
     CATEGORY = "qwenimage/prompt"
     DESCRIPTION = "Enhance your prompts using the Qwen LLM to align the behavior and capabilities of the Qwen-Image/Edit online version."
     
-    def rewrit(self, text, image, prompt_style, llm_model, max_retry, API_KEY, API_KEY_file):
+    def rewrit(self, text, image, prompt_style, llm_model, max_retry, API_KEY, API_KEY_file, skip_rewrite):
+        if skip_rewrite:
+            return (text,)
+        
         if API_KEY_file:
             if not os.path.exists(key_path):
                 raise EnvironmentError(f"'{key_path}' is not exit!")
@@ -287,8 +294,9 @@ class QwenPromptRewriter:
         if prompt_style == "Qwen-Image":
             output_prompt = polish_prompt(api_key_, text, model=llm_model, max_retries=max_retry)
         else:
-            output_prompt = polish_prompt_edit(api_key_, text, images, max_retries=max_retry)
-
+            output_prompt = polish_prompt_edit(api_key_, text, images, model=llm_model, max_retries=max_retry)
+            
+        #print(f'Prompt: "{output_prompt}"')
         return (output_prompt,)
     
 NODE_CLASS_MAPPINGS = {
