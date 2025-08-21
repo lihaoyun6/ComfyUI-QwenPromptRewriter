@@ -236,9 +236,11 @@ class QwenPromptRewriter:
     @classmethod
     def INPUT_TYPES(s):
         return {
+            "optional": {
+                "image": ("IMAGE",),
+            },
             "required": {
                 "text": ("STRING", {"multiline": True}),
-                "image": ("IMAGE",),
                 "prompt_style": (["Qwen-Image-Edit", "Qwen-Image"], {
                     "default": "Qwen-Image-Edit", 
                     "tooltip": 'Depending on your model.'
