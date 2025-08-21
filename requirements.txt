@@ -1,0 +1,4 @@
+torch
+dashscope
+numpy
+pillow

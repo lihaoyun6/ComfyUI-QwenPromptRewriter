@@ -1,0 +1,15 @@
+# Comfyui-QwenPromptRewriter
+使用千问大模型对提示词进行重写, 以对齐 Qwen-Image/Edit 在线版的效果和能力.  
+**[[English version](./readme.md)]**
+
+## 效果演示
+![](./img/preview.jpg)
+
+## 使用方法
+![](./img/nodes.png)  
+
+- prompt\_style: 根据你使用的生图模型选择`Qwen-Image_Edit`或`Qwen-Image`  
+- llm\_model: 用于增强提示词的模型, 仅对`Qwen-Image`模式生效! 使用`Qwen-Image-Edit`模式时会始终调用`qwen-vl-max-latest`模型.    
+- max\_retry: API 调用失败时的最大重试次数.  
+- API\_KEY: 你的 [阿里云](https://www.aliyun.com/product/bailian) api key.  
+- **API\_KEY\_file: 从本地文件读取 API_KEY 信息, 以便于安全的分享工作流而不会泄漏你的 Key _(强烈推荐使用此方式!!!)_**  
