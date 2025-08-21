@@ -130,7 +130,7 @@ def get_caption_language(prompt):
 def api_edit(prompt, img_list, model="qwen-vl-max-latest", api_key=None, kwargs={}):
     if not api_key:
         raise EnvironmentError("API_KEY is not set!")
-    assert model in ["qwen-vl-max-latest"], f"Not implemented model {model}"
+    assert model in ["qwen-vl-max", "qwen-vl-max-latest", "qwen-vl-max-2025-08-13", "qwen-vl-max-2025-04-08"], f'"{model}" is not available for the "Qwen-Image-Edit" style.'
     sys_promot = "you are a helpful assistant, you should provide useful answers to users."
     messages = [
         {"role": "system", "content": sys_promot},
@@ -182,7 +182,7 @@ def api(prompt, model, api_key=None, kwargs={}):
     if not api_key:
         raise EnvironmentError("API_KEY is not set!")
     
-    assert model in ["qwen-plus", "qwen-max", "qwen-plus-latest", "qwen-max-latest"], f"Not implemented model {model}"
+    assert model in ["qwen-vl-max", "qwen-vl-max-latest", "qwen-vl-max-2025-08-13", "qwen-plus", "qwen-max", "qwen-plus-latest", "qwen-max-latest"], f'"{model}" is not available for the "Qwen-Image" style.'
     messages = [
         {'role': 'system', 'content': 'You are a helpful assistant.'},
         {'role': 'user', 'content': prompt}
@@ -245,9 +245,9 @@ class QwenPromptRewriter:
                     "default": "Qwen-Image-Edit", 
                     "tooltip": 'Depending on your model.'
                 }),
-                "llm_model": (["qwen-plus", "qwen-max", "qwen-plus-latest", "qwen-max-latest"], {
-                    "default": "qwen-plus", 
-                    "tooltip": 'For "Qwen-Image" style only!\nThe "Qwen-Image-Edit" style will always use "qwen-vl-max-latest" model.'
+                "llm_model": (["qwen-vl-max", "qwen-vl-max-latest", "qwen-vl-max-2025-08-13", "qwen-vl-max-2025-04-08", "qwen-plus", "qwen-max", "qwen-plus-latest", "qwen-max-latest"], {
+                    "default": "qwen-vl-max-latest", 
+                    "tooltip": 'For "Qwen-Image-Edit" style, please use the "qwen-vl-xxx" series model.'
                 }),
                 "max_retry": ("INT",{
                     "default": 10, "min": 1, "max": 10000, "step": 1,

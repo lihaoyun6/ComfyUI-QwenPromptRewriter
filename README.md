@@ -9,7 +9,7 @@ Enhance your prompts using the Qwen LLM to align the behavior and capabilities o
 ![](./img/nodes.png)  
 
 - prompt\_style: `Qwen-Image_Edit` or `Qwen-Image` depending on your model.  
-- llm\_model: For `Qwen-Image` only! The `Qwen-Image-Edit` always use `qwen-vl-max-latest` model.    
+- llm\_model: For "Qwen-Image-Edit" style, please use the "qwen-vl-xxx" series model.    
 - max\_retry: Maximum number of retries when an API call fails.  
 - API\_KEY: Your [aliyun](https://www.aliyun.com/product/bailian) api key.  
 - **API\_KEY\_file: Read your API_KEY from  `api_key.txt` instead of the input box _(Highly Recommended!!!)_**

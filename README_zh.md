@@ -9,7 +9,7 @@
 ![](./img/nodes.png)  
 
 - prompt\_style: 根据你使用的生图模型选择`Qwen-Image_Edit`或`Qwen-Image`  
-- llm\_model: 用于增强提示词的模型, 仅对`Qwen-Image`模式生效! 使用`Qwen-Image-Edit`模式时会始终调用`qwen-vl-max-latest`模型.    
+- llm\_model: 使用`Qwen-Image-Edit`模式时请选择`qwen-vl-xxx`系列模型.    
 - max\_retry: API 调用失败时的最大重试次数.  
 - API\_KEY: 你的 [阿里云](https://www.aliyun.com/product/bailian) api key.  
 - **API\_KEY\_file: 从 `api_key.txt` 中读取 API_KEY 信息 _(强烈推荐此方式!!!)_**  
