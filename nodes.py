@@ -130,6 +130,8 @@ def get_caption_language(prompt):
 def api_edit(prompt, img_list, model="qwen-vl-max-latest", api_key=None, kwargs={}):
     if not api_key:
         raise EnvironmentError("API_KEY is not set!")
+        
+    print(f"Using {model} for prompt rewriting...")
     assert model in ["qwen-vl-max", "qwen-vl-max-latest", "qwen-vl-max-2025-08-13", "qwen-vl-max-2025-04-08"], f'"{model}" is not available for the "Qwen-Image-Edit" style.'
     sys_promot = "you are a helpful assistant, you should provide useful answers to users."
     messages = [
@@ -155,13 +157,13 @@ def api_edit(prompt, img_list, model="qwen-vl-max-latest", api_key=None, kwargs=
     else:
         raise Exception(f'Failed to post: {response}')
 
-def polish_prompt_edit(api_key, prompt, img, max_retries=10):
+def polish_prompt_edit(api_key, prompt, img, model="qwen-vl-max-latest", max_retries=10):
     retries = 0
     prompt_text = f"{EDIT_SYSTEM_PROMPT}\n\nUser Input: {prompt}\n\nRewritten Prompt:"
     
     while retries < max_retries:
         try:
-            result = api_edit(prompt_text, img, api_key=api_key)
+            result = api_edit(prompt_text, img, model=model, api_key=api_key)
             
             if isinstance(result, str):
                 result = result.replace('```json', '').replace('```', '')
@@ -182,6 +184,7 @@ def api(prompt, model, api_key=None, kwargs={}):
     if not api_key:
         raise EnvironmentError("API_KEY is not set!")
     
+    print(f"Using {model} for prompt rewriting...")
     assert model in ["qwen-vl-max", "qwen-vl-max-latest", "qwen-vl-max-2025-08-13", "qwen-plus", "qwen-max", "qwen-plus-latest", "qwen-max-latest"], f'"{model}" is not available for the "Qwen-Image" style.'
     messages = [
         {'role': 'system', 'content': 'You are a helpful assistant.'},
