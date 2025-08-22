@@ -1,4 +1,5 @@
 import os
+import io
 import json
 import torch
 import base64
@@ -110,11 +111,35 @@ Please strictly follow the rewriting rules below:
 }
 '''
 
-def encode_image(pil_image):
-    import io
+def encode_image(pil_image, save_tokens=True):
     buffered = io.BytesIO()
-    pil_image.save(buffered, format="PNG")
+    if save_tokens:
+        image = resize_to_limit(pil_image)
+        image.save(buffered, format="JPEG", optimize=True, quality=75)
+    else:
+        pil_image.save(buffered, format="PNG")
     return base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+def resize_to_limit(img, max_pixels = 262144):
+    width, height = img.size
+    total_pixels = width * height
+    
+    if total_pixels <= max_pixels:
+        return img
+    
+    scale = (max_pixels / total_pixels) ** 0.5
+    new_width = int(width * scale)
+    new_height = int(height * scale)
+    return img.resize((new_width, new_height), Image.LANCZOS)
+
+def tensor2pil(image):
+    batch_count = image.size(0) if len(image.shape) > 3 else 1
+    if batch_count > 1:
+        out = []
+        for i in range(batch_count):
+            out.extend(tensor2pil(image[i]))
+        return out
+    return [Image.fromarray(np.clip(255.0 * image.cpu().numpy().squeeze(), 0, 255).astype(np.uint8))]
 
 def get_caption_language(prompt):
     ranges = [
@@ -127,11 +152,11 @@ def get_caption_language(prompt):
             return 'zh'
     return 'en'
 
-def api_edit(prompt, img_list, model="qwen-vl-max-latest", api_key=None, kwargs={}):
+def api_edit(prompt, img_list, model="qwen-vl-max-latest", save_tokens=True, api_key=None, kwargs={}):
     if not api_key:
         raise EnvironmentError("API_KEY is not set!")
         
-    print(f"Using {model} for prompt rewriting...")
+    print(f'Using "{model}" for prompt rewriting...')
     assert model in ["qwen-vl-max", "qwen-vl-max-latest", "qwen-vl-max-2025-08-13", "qwen-vl-max-2025-04-08"], f'"{model}" is not available for the "Qwen-Image-Edit" style.'
     sys_promot = "you are a helpful assistant, you should provide useful answers to users."
     messages = [
@@ -139,7 +164,7 @@ def api_edit(prompt, img_list, model="qwen-vl-max-latest", api_key=None, kwargs=
         {"role": "user", "content": []}]
     for img in img_list:
         messages[1]["content"].append(
-            {"image": f"data:image/png;base64,{encode_image(img)}"})
+            {"image": f"data:image/png;base64,{encode_image(img, save_tokens=save_tokens)}"})
     messages[1]["content"].append({"text": f"{prompt}"})
     
     response_format = kwargs.get('response_format', None)
@@ -157,13 +182,13 @@ def api_edit(prompt, img_list, model="qwen-vl-max-latest", api_key=None, kwargs=
     else:
         raise Exception(f'Failed to post: {response}')
 
-def polish_prompt_edit(api_key, prompt, img, model="qwen-vl-max-latest", max_retries=10):
+def polish_prompt_edit(api_key, prompt, img, model="qwen-vl-max-latest", max_retries=10, save_tokens=True):
     retries = 0
     prompt_text = f"{EDIT_SYSTEM_PROMPT}\n\nUser Input: {prompt}\n\nRewritten Prompt:"
     
     while retries < max_retries:
         try:
-            result = api_edit(prompt_text, img, model=model, api_key=api_key)
+            result = api_edit(prompt_text, img, model=model, save_tokens=save_tokens, api_key=api_key)
             
             if isinstance(result, str):
                 result = result.replace('```json', '').replace('```', '')
@@ -184,7 +209,7 @@ def api(prompt, model, api_key=None, kwargs={}):
     if not api_key:
         raise EnvironmentError("API_KEY is not set!")
     
-    print(f"Using {model} for prompt rewriting...")
+    print(f'Using "{model}" for prompt rewriting...')
     assert model in ["qwen-vl-max", "qwen-vl-max-latest", "qwen-vl-max-2025-08-13", "qwen-plus", "qwen-max", "qwen-plus-latest", "qwen-max-latest"], f'"{model}" is not available for the "Qwen-Image" style.'
     messages = [
         {'role': 'system', 'content': 'You are a helpful assistant.'},
@@ -226,15 +251,6 @@ def polish_prompt(api_key, prompt, model="qwen-plus", max_retries=10):
     
     raise EnvironmentError(f"Error during API call: {error}")
 
-def tensor2pil(image):
-    batch_count = image.size(0) if len(image.shape) > 3 else 1
-    if batch_count > 1:
-        out = []
-        for i in range(batch_count):
-            out.extend(tensor2pil(image[i]))
-        return out
-    return [Image.fromarray(np.clip(255.0 * image.cpu().numpy().squeeze(), 0, 255).astype(np.uint8))]
-
 class QwenPromptRewriter:
     @classmethod
     def INPUT_TYPES(s):
@@ -264,6 +280,10 @@ class QwenPromptRewriter:
                     "default": True,
                     "tooltip": f'Read your API_KEY from "{key_path}" so you can share your workflow safely.'
                 }),
+                "save_tokens": ("BOOLEAN", {
+                    "default": True,
+                    "tooltip": "Save tokens by compressing the input image."
+                }), 
                 "skip_rewrite": ("BOOLEAN", {
                     "default": False,
                     "tooltip": "Don't rewrite the prompt word, just output it directly."
@@ -276,7 +296,7 @@ class QwenPromptRewriter:
     CATEGORY = "qwenimage/prompt"
     DESCRIPTION = "Enhance your prompts using the Qwen LLM to align the behavior and capabilities of the Qwen-Image/Edit online version."
     
-    def rewrit(self, text, image, prompt_style, llm_model, max_retry, API_KEY, API_KEY_file, skip_rewrite):
+    def rewrit(self, text, image, prompt_style, llm_model, max_retry, API_KEY, API_KEY_file, save_tokens, skip_rewrite):
         if skip_rewrite:
             return (text,)
         
@@ -297,7 +317,7 @@ class QwenPromptRewriter:
         if prompt_style == "Qwen-Image":
             output_prompt = polish_prompt(api_key_, text, model=llm_model, max_retries=max_retry)
         else:
-            output_prompt = polish_prompt_edit(api_key_, text, images, model=llm_model, max_retries=max_retry)
+            output_prompt = polish_prompt_edit(api_key_, text, images, model=llm_model, max_retries=max_retry, save_tokens=save_tokens)
             
         #print(f'Prompt: "{output_prompt}"')
         return (output_prompt,)
