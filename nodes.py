@@ -357,7 +357,7 @@ class TextEncodeQwenImageEditAdv:
             images = [image[:, :, :, :3]]
             
             if latent is not None:
-                ref_latent = latent
+                ref_latent = latent["samples"]
             elif vae is not None:
                 ref_latent = vae.encode(image[:, :, :, :3])
                 
