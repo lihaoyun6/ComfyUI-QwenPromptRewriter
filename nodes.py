@@ -355,6 +355,7 @@ class TextEncodeQwenImageEditAdv:
             s = comfy.utils.common_upscale(samples, width, height, "area", "disabled")
             image = s.movedim(1, -1)
             images = [image[:, :, :, :3]]
+            
             if latent is not None:
                 ref_latent = latent
             elif vae is not None:
@@ -363,7 +364,7 @@ class TextEncodeQwenImageEditAdv:
         tokens = clip.tokenize(prompt, images=images)
         conditioning = clip.encode_from_tokens_scheduled(tokens)
         if ref_latent is not None:
-            conditioning = node_helpers.conditioning_set_values(conditioning, {"reference_latents": [ref_latent]}, append=True)
+            conditioning = node_helpers.conditioning_set_values(conditioning, {"reference_latents": ref_latent}, append=True)
         return (conditioning, )
     
 NODE_CLASS_MAPPINGS = {
