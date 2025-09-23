@@ -394,7 +394,7 @@ class TextEncodeQwenImageEditPlusAdv:
     
     CATEGORY = "advanced/conditioning"
     
-    def encode(self, clip, prompt, negative_prompt, smart_resize, align_latent, vae=None, image1=None, image2=None, image3=None):
+    def encode(self, clip, prompt, negative_prompt, smart_input, align_latent, vae=None, image1=None, image2=None, image3=None):
         ref_latents = []
         images = [img for img in [image1, image2, image3] if img is not None]
         images_vl = []
