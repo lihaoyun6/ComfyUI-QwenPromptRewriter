@@ -447,7 +447,7 @@ class TextEncodeQwenImageEditPlusAdv:
                 if conditioning_lyrics is not None:
                         d["conditioning_lyrics"] = torch.zeros_like(conditioning_lyrics)
                 n = [torch.zeros_like(t[0]), d]
-                c.append(n)
+                conditioningN.append(n)
         else:
             tokensN = clip.tokenize(image_prompt + negative_prompt, images=images_vl, llama_template=llama_template)
             conditioningN = clip.encode_from_tokens_scheduled(tokensN)
