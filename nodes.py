@@ -402,7 +402,7 @@ class TextEncodeQwenImageEditPlusAdv:
         image_prompt = ""
         
         size = 384
-        if smart_resize:
+        if smart_input:
             size = 1024
             if len(images) > 2:
                 size = 384
