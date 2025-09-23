@@ -435,8 +435,22 @@ class TextEncodeQwenImageEditPlusAdv:
                 
         tokens = clip.tokenize(image_prompt + prompt, images=images_vl, llama_template=llama_template)
         conditioning = clip.encode_from_tokens_scheduled(tokens)
-        tokensN = clip.tokenize(image_prompt + negative_prompt, images=images_vl, llama_template=llama_template)
-        conditioningN = clip.encode_from_tokens_scheduled(tokensN)
+        
+        if negative_prompt == "":
+            conditioningN = []
+            for t in conditioning:
+                d = t[1].copy()
+                pooled_output = d.get("pooled_output", None)
+                if pooled_output is not None:
+                        d["pooled_output"] = torch.zeros_like(pooled_output)
+                conditioning_lyrics = d.get("conditioning_lyrics", None)
+                if conditioning_lyrics is not None:
+                        d["conditioning_lyrics"] = torch.zeros_like(conditioning_lyrics)
+                n = [torch.zeros_like(t[0]), d]
+                c.append(n)
+        else:
+            tokensN = clip.tokenize(image_prompt + negative_prompt, images=images_vl, llama_template=llama_template)
+            conditioningN = clip.encode_from_tokens_scheduled(tokensN)
         
         if len(ref_latents) > 0:
             conditioning = node_helpers.conditioning_set_values(conditioning, {"reference_latents": ref_latents}, append=True)
