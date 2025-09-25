@@ -380,7 +380,7 @@ class TextEncodeQwenImageEditPlusAdv:
             "prompt": ("STRING", {"multiline": True, "dynamicPrompts": True}),
             "negative_prompt": ("STRING", ),
             "smart_input": ("BOOLEAN", {"default": False, "tooltip": "Choose an appropriate encoding size based on the number of input images."}),
-            "align_latent": (["image1_only", "all"], {"default": "image1_only", "tooltip": "Do not pre-scale the reference latents."}),
+            "align_latent": (["disabled", "image1_only", "all"], {"default": "image1_only", "tooltip": "Do not pre-scale the reference latents."}),
             },
             "optional": {"vae": ("VAE", ),
                          "image1": ("IMAGE", ),
