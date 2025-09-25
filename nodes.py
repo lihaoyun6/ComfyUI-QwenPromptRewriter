@@ -380,7 +380,7 @@ class TextEncodeQwenImageEditPlusAdv:
             "prompt": ("STRING", {"multiline": True, "dynamicPrompts": True}),
             "negative_prompt": ("STRING", ),
             "smart_input": ("BOOLEAN", {"default": False, "tooltip": "Choose an appropriate encoding size based on the number of input images."}),
-            "align_latent": ("BOOLEAN", {"default": True, "tooltip": "Do not pre-scale the reference latents."}),
+            "align_latent": (["image1_only", "all"], {"default": "all", "tooltip": "Do not pre-scale the reference latents."}),
             },
             "optional": {"vae": ("VAE", ),
                          "image1": ("IMAGE", ),
@@ -420,7 +420,7 @@ class TextEncodeQwenImageEditPlusAdv:
             s = comfy.utils.common_upscale(samples, width, height, "area", "disabled")
             images_vl.append(s.movedim(1, -1))
             if vae is not None:
-                if align_latent:
+                if (align_latent == "image1_only" and i == 0) or align_latent == "all":
                     ref_latents.append(vae.encode(image[:, :, :, :3]))
                 else:
                     total = int(1024 * 1024)
