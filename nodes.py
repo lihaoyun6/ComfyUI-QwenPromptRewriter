@@ -400,6 +400,7 @@ class TextEncodeQwenImageEditPlusAdv:
         images_vl = []
         llama_template = "<|im_start|>system\nDescribe the key features of the input image (color, shape, size, texture, objects, background), then explain how the user's text instruction should alter or modify the image. Generate a new image that meets the user's requirements while maintaining consistency with the original input where appropriate.<|im_end|>\n<|im_start|>user\n{}<|im_end|>\n<|im_start|>assistant\n"
         image_prompt = ""
+        output_latent = None
         
         size = 384
         if smart_input:
@@ -421,8 +422,13 @@ class TextEncodeQwenImageEditPlusAdv:
             images_vl.append(s.movedim(1, -1))
             if vae is not None:
                 if (align_latent == "image1_only" and i == 0) or align_latent == "all":
-                    ref_latents.append(vae.encode(image[:, :, :, :3]))
+                    l = vae.encode(image[:, :, :, :3])
+                    if i == 0:
+                        output_latent = l
+                    ref_latents.append(l)
                 else:
+                    if i == 0:
+                        output_latent = vae.encode(image[:, :, :, :3])
                     total = int(1024 * 1024)
                     scale_by = math.sqrt(total / (samples.shape[3] * samples.shape[2]))
                     width = round(samples.shape[3] * scale_by / 8.0) * 8
@@ -435,28 +441,14 @@ class TextEncodeQwenImageEditPlusAdv:
                 
         tokens = clip.tokenize(image_prompt + prompt, images=images_vl, llama_template=llama_template)
         conditioning = clip.encode_from_tokens_scheduled(tokens)
-        
-        if negative_prompt == "":
-            conditioningN = []
-            for t in conditioning:
-                d = t[1].copy()
-                pooled_output = d.get("pooled_output", None)
-                if pooled_output is not None:
-                        d["pooled_output"] = torch.zeros_like(pooled_output)
-                conditioning_lyrics = d.get("conditioning_lyrics", None)
-                if conditioning_lyrics is not None:
-                        d["conditioning_lyrics"] = torch.zeros_like(conditioning_lyrics)
-                n = [torch.zeros_like(t[0]), d]
-                conditioningN.append(n)
-        else:
-            tokensN = clip.tokenize(image_prompt + negative_prompt, images=images_vl, llama_template=llama_template)
-            conditioningN = clip.encode_from_tokens_scheduled(tokensN)
+        tokensN = clip.tokenize(image_prompt + negative_prompt, images=images_vl, llama_template=llama_template)
+        conditioningN = clip.encode_from_tokens_scheduled(tokensN)
         
         if len(ref_latents) > 0:
             conditioning = node_helpers.conditioning_set_values(conditioning, {"reference_latents": ref_latents}, append=True)
-            return (conditioning, conditioningN, {"samples": ref_latents[0]}, )
+            conditioningN = node_helpers.conditioning_set_values(conditioningN, {"reference_latents": ref_latents}, append=True)
         
-        return (conditioning, conditioningN, {"samples": None}, )
+        return (conditioning, conditioningN, {"samples": output_latent}, )
     
 NODE_CLASS_MAPPINGS = {
     "QwenPromptRewriter": QwenPromptRewriter,
