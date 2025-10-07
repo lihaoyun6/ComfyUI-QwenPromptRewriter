@@ -10,9 +10,8 @@ Enhance your prompts using the Qwen LLM to align the behavior and capabilities o
 
 - prompt\_style: `Qwen-Image_Edit` or `Qwen-Image` depending on your model.  
 - llm\_model: For "Qwen-Image-Edit" style, please use the "qwen-vl-xxx" series model.    
-- max\_retry: Maximum number of retries when an API call fails.  
+- max\_retries: Maximum number of retries when an API call fails.  
 - API\_KEY: Your [aliyun](https://www.aliyun.com/product/bailian) api key.  
-- **API\_KEY\_file: Read your API_KEY from  `api_key.txt` instead of the input box _(Highly Recommended!!!)_**  
 - skip\_rewrite: Don't rewrite the prompt word, just output it directly.  
 
 >  It is recommended to write your API_KEY into the `api_key.txt` file so you can share your workflow safely!
